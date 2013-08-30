@@ -9,3 +9,5 @@ beautifulsoup4
 # (beautiful soup ain't good enough)
 lxml
 
+# ESPN API python wrapper
+git+git://github.com/loisaidasam/holycow.git
