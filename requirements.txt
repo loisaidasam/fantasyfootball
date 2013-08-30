@@ -1,0 +1,11 @@
+
+# For downloading the pages
+requests
+
+# For parsing the results of the XML
+beautifulsoup4
+
+# For parsing the pages into proper XML
+# (beautiful soup ain't good enough)
+lxml
+
