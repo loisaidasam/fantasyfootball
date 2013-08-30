@@ -1,4 +1,5 @@
 
+import logging
 import re
 
 from bs4 import BeautifulSoup
@@ -9,6 +10,8 @@ from common import FantasyFootballTeam
 
 
 TEAM_URL_TEMPLATE = "http://games.espn.go.com/ffl/clubhouse?leagueId=%s&teamId=%s&seasonId=%s"
+
+logger = logging.getLogger(__name__)
 
 
 class InvalidPlayerIdError(Exception):
@@ -24,7 +27,7 @@ class ESPNFantasyFootballTeam(FantasyFootballTeam):
         
     @property
     def api(self):
-        if not self._api:
+        if not getattr(self, '_api', None):
             self._api = holycow.Api(self.api_key,
                                     holycow.Api.RESOURCE_SPORTS_FOOTBALL_NFL)
         return self._api
@@ -53,6 +56,15 @@ class ESPNFantasyFootballTeam(FantasyFootballTeam):
             if not matches:
                 raise InvalidPlayerIdError("id=%s" % player_id)
             actual_id = matches.group(1)
-            player = self.api.athlete(actual_id)
+            try:
+                player = self.api.athlete(actual_id)
+            except holycow.ApiRequestError:
+                logger.warning("Unable to grab athlete with id=%s from holycow API", actual_id)
+                full_name = player_col.find("a").string
+                raw_data = {
+                    'id': actual_id,
+                    'full_name': full_name,
+                }
+                player = holycow.athlete.Athlete(raw_data)
             players.append(player)
         return players

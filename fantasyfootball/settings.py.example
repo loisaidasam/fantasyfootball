@@ -1,0 +1,9 @@
+
+# http://developer.espn.com/overview
+ESPN_API_KEY = "[your ESPN API key here]"
+
+# Sample values from your page at something like:
+# http://games.espn.go.com/ffl/clubhouse?leagueId=1209473&teamId=3&seasonId=2013
+LEAGUE_ID = 1209473
+TEAM_ID = 3
+SEASON_ID = 2013
