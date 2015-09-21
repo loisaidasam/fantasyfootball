@@ -11,12 +11,11 @@ def main():
     args = parser.parse_args()
     params = ESPNTeam.parse_params_from_url(args.url)
     team = ESPNTeam(**params)
-    # TODO: Continue working here, having login troubles...
-    team.login('email@gmail.com', 'password')
+    team.set_cookie('YOUR_COOKIE_HERE')
     players = team.get_players()
-    print players
-    # for player in players:
-    #     print player
+    # print players
+    for i, player in enumerate(players, start=1):
+        print "%d.\t%s" % (i, player)
 
 
 if __name__ == '__main__':
