@@ -8,6 +8,3 @@ beautifulsoup4
 # For parsing the pages into proper XML
 # (beautiful soup ain't good enough)
 lxml
-
-# ESPN API python wrapper
-git+git://github.com/loisaidasam/holycow.git

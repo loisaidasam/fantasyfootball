@@ -1,2 +1,0 @@
-
-from espn import ESPNFantasyFootballTeam
