@@ -2,4 +2,4 @@
 *.pyc
 *.DS_Store
 
-fantasyfootball/settings.py
+settings.py

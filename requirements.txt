@@ -1,10 +1,3 @@
-
-# For downloading the pages
-requests
-
-# For parsing the results of the XML
-beautifulsoup4
-
-# For parsing the pages into proper XML
-# (beautiful soup ain't good enough)
-lxml
+beautifulsoup4==4.5.1
+lxml==3.6.4
+requests==2.11.1
