@@ -4,20 +4,34 @@ import argparse
 import csv
 import datetime
 import logging
+import os
 
 from fantasyfootball.espn import ESPNTeam
 
 import settings
 
 
+BASE_DIR = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
+
+LOGGING_DIR = os.path.join(BASE_DIR, 'logs')
+LOG_FILENAME = os.path.join(LOGGING_DIR, 'export.log')
+
+DATA_DIR = os.path.join(BASE_DIR, 'data')
+
+
 logger = logging.getLogger('')
 logger.setLevel(logging.INFO)
+logger.handlers = []
 formatter = logging.Formatter('%(asctime)s [%(levelname)s] %(name)s (%(process)d): %(message)s',
                               '%Y-%m-%d %H:%M:%S')
-ch = logging.StreamHandler()
-ch.setLevel(logging.INFO)
-ch.setFormatter(formatter)
-logger.addHandler(ch)
+stream_handler = logging.StreamHandler()
+stream_handler.setLevel(logging.INFO)
+stream_handler.setFormatter(formatter)
+logger.addHandler(stream_handler)
+file_handler = logging.FileHandler(LOG_FILENAME)
+file_handler.setLevel(logging.INFO)
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
 
 
 def write_data(filename, players):
@@ -63,7 +77,8 @@ def main():
     # In [3]: datetime.datetime.now().isoformat().split('.')[0][:-3].replace('T', '-').replace(':', '-')
     # Out[3]: '2016-09-12-17-24'
     date_str = datetime.datetime.now().isoformat().split('.')[0][:-3].replace('T', '-').replace(':', '-')
-    filename = 'data/players-%s.csv' % date_str
+    basename = 'players-%s.csv' % date_str
+    filename = os.path.join(DATA_DIR, basename)
     write_data(filename, team.get_players())
 
 
