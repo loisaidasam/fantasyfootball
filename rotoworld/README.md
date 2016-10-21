@@ -8,3 +8,5 @@ To download depth charts HTML, convert to JSON, convert to CSV, and then concate
 ```bash
 ./depth_charts
 ```
+
+Example result: [depth_charts.2016-10-21-00-33.csv](https://github.com/loisaidasam/fantasyfootball/blob/master/rotoworld/depth_charts.2016-10-21-00-33.csv)
