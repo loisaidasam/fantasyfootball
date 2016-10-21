@@ -1,3 +1,4 @@
 *.html
 *.json
 *.csv
+!depth_charts.2016-10-21-00-33.csv
