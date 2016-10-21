@@ -17,7 +17,7 @@ do
 done
 
 echo "Concatenating CSVs together ..."
-echo -n "" > depth_charts.csv
+echo "team,name,position,depth" > depth_charts.csv
 for DIVISION in AE AN AS AW NN NS NE NW
 do
     cat "$DIVISION.html.json.csv" >> depth_charts.csv
