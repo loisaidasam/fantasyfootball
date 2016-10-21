@@ -1,37 +1,25 @@
 #!/bin/bash
 
-# Download depth charts
+# Reusable die() function
+# via http://stackoverflow.com/a/7869048/1406873
+die() { echo "$@" 1>&2 ; exit 1; }
 
-# Disclaimer
-# This script is merely an example of how one might do this - the author in no
-# way advocates actually running this script or anything like it, and can not be
-# held accountable for those that do.
 
-# Script prep:
-# - Go to: http://www.rotoworld.com/teams/depth-charts/nfl.aspx
-# - Click dropdown to change division
-# - Look at request params and fill in the following POST params:
-#   - __VIEWSTATE
-#   - __EVENTVALIDATION
+./download_depth_charts.sh || die "Error downloading depth charts"
 
-# Example full working curl:
-# $ curl "http://www.rotoworld.com/teams/depth-charts/nfl.aspx?__VIEWSTATE=%2FwEPDwUKMTY5MDM3Mjg4MQ9kFgJmD2QWBAIBD2QWBAIKDxYCHgRUZXh0BVQ8bGluayByZWw9ImNhbm9uaWNhbCIgaHJlZj0iaHR0cDovL3d3dy5yb3Rvd29ybGQuY29tL3RlYW1zL2RlcHRoLWNoYXJ0cy9uZmwuYXNweCIgLz5kAiAPFgIfAAViPHNjcmlwdCBsYW5ndWFnZT0namF2YXNjcmlwdCcgdHlwZT0ndGV4dC9qYXZhc2NyaXB0JyBzcmM9Jy96bGlicy9mbHlvdXRuYXZfdjA5MDQyMDEzLmpzJz48L3NjcmlwdD5kAgMPZBYCAgMPZBYEAgMPZBYEAgMPEGRkFgFmZAILD2QWAmYPZBYIZg8PZBYCHgVzdHlsZQUYYmFja2dyb3VuZC1jb2xvcjojMTk0QjhDFgJmDw8WBB4LTmF2aWdhdGVVcmwFHC90ZWFtcy9uZmwvYnVmL2J1ZmZhbG8tYmlsbHMfAAUNQnVmZmFsbyBCaWxsc2RkAgEPD2QWAh8BBRhiYWNrZ3JvdW5kLWNvbG9yOiMwMDc4ODMWAmYPDxYEHwIFHS90ZWFtcy9uZmwvbWlhL21pYW1pLWRvbHBoaW5zHwAFDk1pYW1pIERvbHBoaW5zZGQCAg8PZBYCHwEFGGJhY2tncm91bmQtY29sb3I6IzI0M0U4MhYCZg8PFgQfAgUiL3RlYW1zL25mbC9uZS9uZXctZW5nbGFuZC1wYXRyaW90cx8ABRROZXcgRW5nbGFuZCBQYXRyaW90c2RkAgMPD2QWAh8BBRhiYWNrZ3JvdW5kLWNvbG9yOiMxNjQ1MkQWAmYPDxYEHwIFHC90ZWFtcy9uZmwvbnlqL25ldy15b3JrLWpldHMfAAUNTmV3IFlvcmsgSmV0c2RkAgUPZBYCAgMPZBYGAgEPFgIfAAUNTkZMIEhlYWRsaW5lc2QCAg8PFgIfAgUkfi9oZWFkbGluZXMvbmZsLzAvRm9vdGJhbGwtaGVhZGxpbmVzZGQCBA8PZA8QFgFmFgEWAh4OUGFyYW1ldGVyVmFsdWUFA25mbBYBZmRkZO2Dt9M52EuENdgn%2BJZ3xBHinSck&__EVENTVALIDATION=%2FwEWEQL5vN6ODQKHlvL3BgLA%2BsClCQK5vLryBgKR7bOpAwLOgqXZDwLOgoHZDwLOgu3ZDwLOgv3ZDwLzgqXZDwLzgoHZDwLzgu3ZDwLzgv3ZDwKryO7wDQLU2Yn4DgKVk5vgDAK%2F%2Ft%2FaB027cmz3JEV3i6kEyk3oQl6vVZaJ&ctl00%24cp1%24ddlDivisions=AN" -o AN.html
-
-VIEW_STATE="/wEPDwUKMTY5MDM3Mjg4MQ9kFgJmD2QWBAIBD2QWBAIKDxYCHgRUZXh0BVQ8bGluayByZWw9ImNhbm9uaWNhbCIgaHJlZj0iaHR0cDovL3d3dy5yb3Rvd29ybGQuY29tL3RlYW1zL2RlcHRoLWNoYXJ0cy9uZmwuYXNweCIgLz5kAiAPFgIfAAViPHNjcmlwdCBsYW5ndWFnZT0namF2YXNjcmlwdCcgdHlwZT0ndGV4dC9qYXZhc2NyaXB0JyBzcmM9Jy96bGlicy9mbHlvdXRuYXZfdjA5MDQyMDEzLmpzJz48L3NjcmlwdD5kAgMPZBYCAgMPZBYEAgMPZBYEAgMPEGRkFgFmZAILD2QWAmYPZBYIZg8PZBYCHgVzdHlsZQUYYmFja2dyb3VuZC1jb2xvcjojMTk0QjhDFgJmDw8WBB4LTmF2aWdhdGVVcmwFHC90ZWFtcy9uZmwvYnVmL2J1ZmZhbG8tYmlsbHMfAAUNQnVmZmFsbyBCaWxsc2RkAgEPD2QWAh8BBRhiYWNrZ3JvdW5kLWNvbG9yOiMwMDc4ODMWAmYPDxYEHwIFHS90ZWFtcy9uZmwvbWlhL21pYW1pLWRvbHBoaW5zHwAFDk1pYW1pIERvbHBoaW5zZGQCAg8PZBYCHwEFGGJhY2tncm91bmQtY29sb3I6IzI0M0U4MhYCZg8PFgQfAgUiL3RlYW1zL25mbC9uZS9uZXctZW5nbGFuZC1wYXRyaW90cx8ABRROZXcgRW5nbGFuZCBQYXRyaW90c2RkAgMPD2QWAh8BBRhiYWNrZ3JvdW5kLWNvbG9yOiMxNjQ1MkQWAmYPDxYEHwIFHC90ZWFtcy9uZmwvbnlqL25ldy15b3JrLWpldHMfAAUNTmV3IFlvcmsgSmV0c2RkAgUPZBYCAgMPZBYGAgEPFgIfAAUNTkZMIEhlYWRsaW5lc2QCAg8PFgIfAgUkfi9oZWFkbGluZXMvbmZsLzAvRm9vdGJhbGwtaGVhZGxpbmVzZGQCBA8PZA8QFgFmFgEWAh4OUGFyYW1ldGVyVmFsdWUFA25mbBYBZmRkZO2Dt9M52EuENdgn+JZ3xBHinSck"
-EVENT_VALIDATION="/wEWEQL5vN6ODQKHlvL3BgLA+sClCQK5vLryBgKR7bOpAwLOgqXZDwLOgoHZDwLOgu3ZDwLOgv3ZDwLzgqXZDwLzgoHZDwLzgu3ZDwLzgv3ZDwKryO7wDQLU2Yn4DgKVk5vgDAK//t/aB027cmz3JEV3i6kEyk3oQl6vVZaJ"
-
-# Tricky var b/c of "$"
-DIVISION_VAR='ctl00$cp1$ddlDivisions'
-
-# "AE" is the default
-echo "Downloading division \"AE\" ..."
-curl "http://www.rotoworld.com/teams/depth-charts/nfl.aspx" -o "AE.html" ;
-sleep 1 ;
-
-# All other divisions downloaded using POST + validation params
-for DIVISION in AN AS AW NN NS NE NW
+for DIVISION in AE AN AS AW NN NS NE NW
 do
-    echo "Downloading division \"$DIVISION\" ..."
-    curl -X POST -F "__VIEWSTATE=$VIEW_STATE" -F "__EVENTVALIDATION=$EVENT_VALIDATION" -F "$DIVISION_VAR=$DIVISION" "http://www.rotoworld.com/teams/depth-charts/nfl.aspx" -o "$DIVISION.html" ;
-    sleep 1 ;
+    echo "Converting \"$DIVISION.html\" to JSON ..."
+    ./depth_chart_to_json.sh "$DIVISION.html" || die "Error converting \"$DIVISION.html\" to JSON"
+    echo "Converting \"$DIVISION.html.json\" to CSV ..."
+    ./depth_chart_json_to_csv.py "$DIVISION.html.json" || die "Error converting \"$DIVISION.html.json\" to CSV"
+    echo "OK."
 done
+
+echo "Concatenating CSVs together ..."
+echo -n "" > depth_charts.csv
+for DIVISION in AE AN AS AW NN NS NE NW
+do
+    cat "$DIVISION.html.json.csv" >> depth_charts.csv
+done
+echo "Done."
