@@ -174,6 +174,37 @@ class ESPNTeam(BaseTeam):
         response = self.session.get(url, headers={'Cookie': self.cookie})
         return BeautifulSoup(response.content, "lxml")
 
+    def get_header_row(self, player):
+        """
+        Current:
+        status,pct_st,opp,pos,prk,home_away,pts,oprk,avg,last,name,plus_minus,pct_own,proj,team,status_et
+        FA,1.4,Hou,QB,8,AWAY,294.1,3rd,18.4,--,Blake Bortles,-1.5,4.8,13.3,Jax,Sun 1:00
+
+        Desired:
+        name,team,pos,status,opp,home_away,status_et,prk,pts,avg,last,proj,oprk,pct_st,pct_own,plus_minus
+        """
+        KEYS_DESIRED = "name,team,pos,status,opp,home_away,status_et,prk,pts,avg,last,proj,oprk,pct_st,pct_own,plus_minus".split(',')
+        logger.info("Getting header row based on %s desired keys: %s",
+                    len(KEYS_DESIRED),
+                    KEYS_DESIRED)
+        keys_actual = player.keys()
+        header_row = []
+        # Fill up all the keys we want first
+        for key in KEYS_DESIRED:
+            if key not in keys_actual:
+                logger.warning("Missing header row key! %s", key)
+                continue
+            header_row.append(key)
+        # Then fill in unknown/new ones
+        for key in keys_actual:
+            if key in header_row:
+                # Cool
+                continue
+            logger.info("Unknown/new header row key! %s", key)
+            header_row.append(key)
+        logger.info("Got header row w/ %s keys", len(header_row))
+        return header_row
+
     def get_players(self, max_num_requests=None):
         logger.info("get_players()")
         offset = num_requests = 0

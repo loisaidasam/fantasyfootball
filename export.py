@@ -34,12 +34,13 @@ file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 
 
-def write_data(filename, players):
+def write_data(filename, team):
+    players = team.get_players()
     with open(filename, 'w') as fp:
         writer = csv.writer(fp)
         for i, player in enumerate(players):
             if i == 0:
-                header_row = player.keys()
+                header_row = team.get_header_row(player)
                 writer.writerow(header_row)
             row = []
             for key in header_row:
@@ -79,7 +80,7 @@ def main():
     date_str = datetime.datetime.now().isoformat().split('.')[0][:-3].replace('T', '-').replace(':', '-')
     basename = 'players-%s.csv' % date_str
     filename = os.path.join(DATA_DIR, basename)
-    write_data(filename, team.get_players())
+    write_data(filename, team)
 
 
 if __name__ == '__main__':
