@@ -11,7 +11,7 @@ from fantasyfootball.base_team import BaseTeam
 LOGIN_URL_GET = 'http://games.espn.com/frontpage/football'
 LOGIN_URL_POST = 'https://registerdisney.go.com/jgc/v2/client/ESPN-FANTASYLM-PROD/guest/login?langPref=en-US'
 TEAM_URL_TEMPLATE = 'http://games.espn.com/ffl/clubhouse?leagueId=%s&teamId=%s&seasonId=%s'
-PLAYERS_URL_TEMPLATE = 'http://games.espn.com/ffl/playertable/prebuilt/freeagency?leagueId=%s&teamId=%s&seasonId=%s&&context=freeagency&view=overview&startIndex=%s'
+PLAYERS_URL_TEMPLATE = 'http://games.espn.com/ffl/playertable/prebuilt/freeagency?leagueId=%s&teamId=%s&seasonId=%s&avail=-1&context=freeagency&view=overview&startIndex=%s'
 
 
 logger = logging.getLogger(__name__)
