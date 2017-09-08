@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import argparse
+import calendar
 import csv
 import datetime
 import logging
@@ -49,6 +50,20 @@ def write_data(filename, team):
     logger.info("Wrote %s players to %s", len(players), filename)
 
 
+def get_csv_datestr():
+    # In [3]: datetime.datetime.now().isoformat().split('.')[0][:-3].replace('T', '-').replace(':', '-')
+    # Out[3]: '2016-09-12-17-24'
+    now = datetime.datetime.now()
+    # Old
+    # 2016-09-12-17-24
+    # return now.isoformat().split('.')[0][:-3].replace('T', '-').replace(':', '-')
+    # New, w/ day of week
+    # 2017-09-07-thu-23-56
+    date, time = now.isoformat().split('.')[0][:-3].split('T')
+    day_of_week = calendar.day_name[now.weekday()].lower()[:3]
+    return ('-'.join([date, day_of_week, time])).replace(':', '-')
+
+
 def main():
     # parser = argparse.ArgumentParser(description="Grab/print the team members")
     # parser.add_argument('url', type=str, help="")
@@ -75,9 +90,7 @@ def main():
     #     print "%d.\t%s" % (i, player)
     # write_data('data/my_team.csv', team.get_team())
 
-    # In [3]: datetime.datetime.now().isoformat().split('.')[0][:-3].replace('T', '-').replace(':', '-')
-    # Out[3]: '2016-09-12-17-24'
-    date_str = datetime.datetime.now().isoformat().split('.')[0][:-3].replace('T', '-').replace(':', '-')
+    date_str = get_csv_datestr()
     basename = 'players-%s.csv' % date_str
     filename = os.path.join(DATA_DIR, basename)
     write_data(filename, team)
