@@ -39,14 +39,17 @@ def write_data(filename, team):
     players = team.get_players()
     with open(filename, 'w') as fp:
         writer = csv.writer(fp)
-        for i, player in enumerate(players):
-            if i == 0:
+        for row_num, player in enumerate(players, start=1):
+            if row_num == 1:
                 header_row = team.get_header_row(player)
                 writer.writerow(header_row)
             row = []
             for key in header_row:
                 row.append(player.get(key))
-            writer.writerow(row)
+            try:
+                writer.writerow(row)
+            except:
+                logger.exception(u"Error writing row %s: %s", row_num, row)
     logger.info("Wrote %s players to %s", len(players), filename)
 
 
