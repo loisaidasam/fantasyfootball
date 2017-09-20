@@ -5,6 +5,7 @@ import re
 
 from bs4 import BeautifulSoup
 import requests
+from unidecode import unidecode
 
 from fantasyfootball.base_team import BaseTeam
 
@@ -99,7 +100,10 @@ class ESPNTeam(BaseTeam):
         }
 
     def _parse_player_info_advanced(self, player_cols):
-        result = {'status': player_cols[2].text}
+        result = {}
+        # For rambunxious team names...
+        owner = unidecode(player_cols[2].text)
+        result['owner'] = owner
         opp = player_cols[5].text
         if '@' in opp:
             result['opp'] = opp[1:]
@@ -175,15 +179,7 @@ class ESPNTeam(BaseTeam):
         return BeautifulSoup(response.content, "lxml")
 
     def get_header_row(self, player):
-        """
-        Current:
-        status,pct_st,opp,pos,prk,home_away,pts,oprk,avg,last,name,plus_minus,pct_own,proj,team,status_et
-        FA,1.4,Hou,QB,8,AWAY,294.1,3rd,18.4,--,Blake Bortles,-1.5,4.8,13.3,Jax,Sun 1:00
-
-        Desired:
-        name,team,pos,status,opp,home_away,status_et,prk,pts,avg,last,proj,oprk,pct_st,pct_own,plus_minus
-        """
-        KEYS_DESIRED = "name,team,pos,status,opp,home_away,status_et,prk,pts,avg,last,proj,oprk,pct_st,pct_own,plus_minus".split(',')
+        KEYS_DESIRED = "name,team,pos,status,owner,opp,home_away,status_et,prk,pts,avg,last,proj,oprk,pct_st,pct_own,plus_minus".split(',')
         logger.info("Getting header row based on %s desired keys: %s",
                     len(KEYS_DESIRED),
                     KEYS_DESIRED)
