@@ -201,15 +201,14 @@ class ESPNTeam(BaseTeam):
         logger.info("Got header row w/ %s keys", len(header_row))
         return header_row
 
-    def get_players(self, max_num_requests=None):
-        logger.info("get_players()")
+    def players_generator(self, max_num_requests=None):
+        logger.info("players_generator()")
         offset = num_requests = 0
-        players = []
         players_seen = set()
         while True:
             if max_num_requests and num_requests >= max_num_requests:
                 logger.info("Hit max_num_requests of %s", max_num_requests)
-                break
+                return
             players_this_time = 0
             soup = self._get_players_soup_piece(offset)
             num_requests += 1
@@ -239,16 +238,20 @@ class ESPNTeam(BaseTeam):
                                      player_row)
                     raise
                 player.update(player_info_advanced)
-                players.append(player)
                 player_hash = (player['name'], player['team'])
                 if player_hash in players_seen:
                     logger.warning("We already saw %s !", player_hash)
-                    return players
+                    return
+                yield player
                 players_seen.add(player_hash)
                 players_this_time += 1
             logger.info("Offset: %s, got %s players", offset, players_this_time)
             if players_this_time < 50:
-                logger.info("Finishing up")
-                break
+                logger.info("Only got %s players (less than 50) - all done here",
+                            players_this_time)
+                return
             offset += 50
-        return players
+
+    def get_players(self, max_num_requests=None):
+        logger.info("get_players()")
+        return list(self.players_generator(max_num_requests))

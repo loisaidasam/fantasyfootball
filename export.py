@@ -36,8 +36,9 @@ logger.addHandler(file_handler)
 
 
 def write_data(filename, team):
-    players = team.get_players()
+    players = team.players_generator()
     with open(filename, 'w') as fp:
+        row_num = 0
         writer = csv.writer(fp)
         for row_num, player in enumerate(players, start=1):
             if row_num == 1:
@@ -50,7 +51,7 @@ def write_data(filename, team):
                 writer.writerow(row)
             except:
                 logger.exception(u"Error writing row %s: %s", row_num, row)
-    logger.info("Wrote %s players to %s", len(players), filename)
+    logger.info("Wrote %s players to %s", row_num, filename)
 
 
 def get_csv_datestr():
