@@ -229,14 +229,14 @@ class ESPNTeam(BaseTeam):
                 except:
                     logger.exception("Error parsing player_info: %s",
                                      player_info)
-                    raise
+                    continue
                 try:
                     player_info_advanced = self._parse_player_info_advanced(player_cols)
                 except:
                     logger.exception("Error parsing advanced player info. player_cols: %s /// player_row: %s",
                                      player_cols,
                                      player_row)
-                    raise
+                    continue
                 player.update(player_info_advanced)
                 player_hash = (player['name'], player['team'])
                 if player_hash in players_seen:
