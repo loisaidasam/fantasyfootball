@@ -104,6 +104,7 @@ class ESPNTeam(BaseTeam):
         # For rambunxious team names...
         owner = unidecode(player_cols[2].text)
         result['owner'] = owner
+        assert len(player_cols) >= 17
         opp = player_cols[5].text
         if '@' in opp:
             result['opp'] = opp[1:]
@@ -246,9 +247,12 @@ class ESPNTeam(BaseTeam):
                 players_seen.add(player_hash)
                 players_this_time += 1
             logger.info("Offset: %s, got %s players", offset, players_this_time)
-            if players_this_time < 50:
-                logger.info("Only got %s players (less than 50) - all done here",
-                            players_this_time)
+            # if players_this_time < 50:
+            #     logger.info("Only got %s players (less than 50) - all done here",
+            #                 players_this_time)
+            #     return
+            if not players_this_time:
+                logger.info("Didn't get any players! All done here")
                 return
             offset += 50
 
