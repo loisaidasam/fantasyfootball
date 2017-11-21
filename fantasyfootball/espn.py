@@ -14,6 +14,8 @@ LOGIN_URL_POST = 'https://registerdisney.go.com/jgc/v2/client/ESPN-FANTASYLM-PRO
 TEAM_URL_TEMPLATE = 'http://games.espn.com/ffl/clubhouse?leagueId=%s&teamId=%s&seasonId=%s'
 PLAYERS_URL_TEMPLATE = 'http://games.espn.com/ffl/playertable/prebuilt/freeagency?leagueId=%s&teamId=%s&seasonId=%s&avail=-1&context=freeagency&view=overview&startIndex=%s'
 
+# PARSER = 'lxml'
+PARSER = 'html5lib'
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +68,7 @@ class ESPNTeam(BaseTeam):
                                    self.team_id,
                                    self.season_id)
         response = self.session.get(url, headers={'Cookie': self.cookie})
-        return BeautifulSoup(response.content, "lxml")
+        return BeautifulSoup(response.content, PARSER)
 
     def _parse_player_info_basic(self, player_info_str):
         """http://stackoverflow.com/questions/4995116/only-extracting-text-from-this-element-not-its-children/4995480#4995480
@@ -177,7 +179,7 @@ class ESPNTeam(BaseTeam):
                                       offset)
         logger.info("URL: %s", url)
         response = self.session.get(url, headers={'Cookie': self.cookie})
-        return BeautifulSoup(response.content, "lxml")
+        return BeautifulSoup(response.content, PARSER)
 
     def get_header_row(self, player):
         KEYS_DESIRED = "name,team,pos,status,owner,opp,home_away,status_et,prk,pts,avg,last,proj,oprk,pct_st,pct_own,plus_minus".split(',')

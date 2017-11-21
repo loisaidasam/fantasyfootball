@@ -1,5 +1,8 @@
 beautifulsoup4==4.5.1
-lxml==3.6.4
 requests==2.11.1
 Unidecode==0.04.21
+
+# TODO: Decide upon a parser
+#lxml==3.6.4
+html5lib==1.0b10
 
