@@ -42,25 +42,8 @@ def get_filename_player_position_cache(csv_file):
     return '%s-player-position-cache.json' % csv_file
 
 
-class SingleLineIterator(object):
-    def __init__(self, line):
-        self.line = line
-        self.done = False
-
-    def __iter__(self):
-        return self
-
-    def next(self):
-        if self.done:
-            raise StopIteration
-        self.done = True
-        return self.line
-
-
 def get_csv_row_from_line(line, *args, **kwargs):
-    iterator = SingleLineIterator(line)
-    reader = csv.reader(iterator, *args, **kwargs)
-    return reader.next()
+    return csv.reader([line], *args, **kwargs).next()
 
 
 class PositionDictReader(object):
@@ -71,6 +54,7 @@ class PositionDictReader(object):
 
     https://stackoverflow.com/questions/14145082/file-tell-inconsistency/14145118#14145118
     https://stackoverflow.com/questions/19151/build-a-basic-python-iterator/24377#24377
+    https://stackoverflow.com/questions/12109622/how-to-know-the-byte-position-of-a-row-of-a-csv-file-in-python/12110160#12110160
     """
     def __init__(self, fp, *args, **kwargs):
         self.fp = fp
