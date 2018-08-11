@@ -47,7 +47,7 @@ def get_player_str_cache(player):
     return '|'.join(player)
 
 
-def get_unique_players(csv_files, write_cache=True):
+def lookup_unique_players(csv_files, write_cache=True):
     logger.info("Getting unique players ...")
     players = set()
     for csv_file in tqdm(csv_files):
@@ -66,6 +66,23 @@ def get_unique_players(csv_files, write_cache=True):
                 json.dump(player_position_cache, fp)
     logging.info("Found `%s` players", len(players))
     return sorted(players)
+
+
+def get_unique_players(dir_name_basename, csv_files):
+    filename_players_cache = '%s.players-cache.json' % dir_name_basename
+    try:
+        with open(filename_players_cache, 'r') as fp:
+            players = json.load(fp)
+        logger.info("Using players cache `%s`", filename_players_cache)
+        return players
+    except:
+        pass
+    logger.warning("Unable to load players cache `%s`, building it now ...",
+                   filename_players_cache)
+    players = lookup_unique_players(csv_files)
+    with open(filename_players_cache, 'w') as fp:
+        json.dump(players, fp)
+    return players
 
 
 def get_player_str(player):
@@ -159,17 +176,7 @@ def aggregate(dir_name, column):
     csv_files = get_csv_files(dir_name)
     logger.info("Got `%s` CSV files", len(csv_files))
     dir_name_basename = os.path.basename(dir_name)
-    filename_players_cache = '%s.players-cache.json' % dir_name_basename
-    try:
-        with open(filename_players_cache, 'r') as fp:
-            players = json.load(fp)
-        logger.info("Using players cache `%s`", filename_players_cache)
-    except:
-        logger.warning("Unable to load players cache `%s`, building it now ...",
-                       filename_players_cache)
-        players = get_unique_players(csv_files)
-        with open(filename_players_cache, 'w') as fp:
-            json.dump(players, fp)
+    players = get_unique_players()
     filename = '%s-players-all-%s.csv' % (dir_name_basename, column)
     logger.info("Writing to `%s`", filename)
     with open(filename, 'w') as fp:
