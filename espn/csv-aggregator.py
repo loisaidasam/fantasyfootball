@@ -9,6 +9,7 @@ import logging
 import os.path
 import sys
 
+import csv_position_reader
 from tqdm import tqdm
 
 
@@ -42,53 +43,6 @@ def get_filename_player_position_cache(csv_file):
     return '%s-player-position-cache.json' % csv_file
 
 
-def get_csv_row_from_line(line, *args, **kwargs):
-    return csv.reader([line], *args, **kwargs).next()
-
-
-class PositionDictReader(object):
-    """Return successive pairs of file position, dict
-
-    Need to implement our own CSV reader, as the default one uses a read-ahead
-    cache on the file pointer, making `fp.tell()` yield inaccurate results.
-
-    https://stackoverflow.com/questions/14145082/file-tell-inconsistency/14145118#14145118
-    https://stackoverflow.com/questions/19151/build-a-basic-python-iterator/24377#24377
-    https://stackoverflow.com/questions/12109622/how-to-know-the-byte-position-of-a-row-of-a-csv-file-in-python/12110160#12110160
-    """
-    def __init__(self, fp, *args, **kwargs):
-        self.fp = fp
-        self.line_iterator = iter(self.fp.readline, '')
-        self.header = None
-        self.args = args
-        self.kwargs = kwargs
-
-    def __iter__(self):
-        return self
-
-    def get_next_row(self):
-        line = self.line_iterator.next()
-        return get_csv_row_from_line(line, *self.args, **self.kwargs)
-
-    def set_header(self):
-        self.fp.seek(0)
-        self.header = self.get_next_row()
-
-    def get_next_row_dict(self):
-        row = self.get_next_row()
-        return dict(zip(self.header, row))
-
-    def next(self):
-        if not self.header:
-            self.set_header()
-        position = self.fp.tell()
-        row_dict = self.get_next_row_dict()
-        return position, row_dict
-
-    def seek(self, position):
-        self.fp.seek(position)
-
-
 def get_player_str_cache(player):
     return '|'.join(player)
 
@@ -98,7 +52,7 @@ def get_unique_players(csv_files, write_cache=True):
     players = set()
     for csv_file in tqdm(csv_files):
         with open(csv_file, 'r') as fp:
-            reader = PositionDictReader(fp)
+            reader = csv_position_reader.DictReader(fp)
             player_position_cache = {}
             for position, row in reader:
                 name = row['name'].replace('*', '')
@@ -124,7 +78,7 @@ class PlayerValueLookup(object):
 
     def __init__(self, csv_file):
         self.fp = open(csv_file, 'r')
-        self.reader = PositionDictReader(self.fp)
+        self.reader = csv_position_reader.DictReader(self.fp)
         self.reader.set_header()
         self.load_player_position_cache(csv_file)
 
@@ -162,7 +116,7 @@ class PlayerValueLookup(object):
             if player_str_cache in self.player_position_cache:
                 position = self.player_position_cache[player_str_cache]
                 self.reader.seek(position)
-                row = self.reader.get_next_row_dict()
+                position, row = self.reader.next()
                 if row[column] == '--':
                     return ''
                 return row[column]
