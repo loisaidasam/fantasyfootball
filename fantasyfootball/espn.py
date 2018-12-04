@@ -12,7 +12,7 @@ from fantasyfootball.base_team import BaseTeam
 LOGIN_URL_GET = 'http://games.espn.com/frontpage/football'
 LOGIN_URL_POST = 'https://registerdisney.go.com/jgc/v2/client/ESPN-FANTASYLM-PROD/guest/login?langPref=en-US'
 TEAM_URL_TEMPLATE = 'http://games.espn.com/ffl/clubhouse?leagueId=%s&teamId=%s&seasonId=%s'
-PLAYERS_URL_TEMPLATE = 'http://games.espn.com/ffl/playertable/prebuilt/freeagency?leagueId=%s&teamId=%s&seasonId=%s&avail=-1&context=freeagency&view=overview&startIndex=%s'
+URL_TEMPLATE_PLAYERS = 'http://games.espn.com/ffl/playertable/prebuilt/freeagency?leagueId=%s&teamId=%s&seasonId=%s&avail=-1&context=freeagency&view=overview&startIndex=%s'
 
 # PARSER = 'lxml'
 PARSER = 'html5lib'
@@ -173,7 +173,7 @@ class ESPNTeam(BaseTeam):
 
     def _get_players_soup_piece(self, offset=0):
         logger.info("Grabbing player soup piece at offset %s", offset)
-        url = PLAYERS_URL_TEMPLATE % (self.league_id,
+        url = URL_TEMPLATE_PLAYERS % (self.league_id,
                                       self.team_id,
                                       self.season_id,
                                       offset)
