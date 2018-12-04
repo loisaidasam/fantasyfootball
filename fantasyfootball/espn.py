@@ -272,16 +272,24 @@ class ESPNTeam(BaseTeam):
             assert len(names) == 2
             scores = [score.text for score in matchup.find_all(class_='score')]
             assert len(scores) == 2
+            records = [record.text for record in matchup.find_all(class_='record')]
+            assert len(records) == 2
+            owners = [owner.text for owner in matchup.find_all(class_='owners')]
+            assert len(owners) == 2
             details = matchup.find(class_='scoringDetails')
             labels = self._get_details_labels(details)
             matchup_teams_data = details.find_all(class_='playersPlayed')
             assert len(matchup_teams_data) == 2
             team1 = self._get_matchup_team_data(names[0],
                                                 scores[0],
+                                                records[0],
+                                                owners[0],
                                                 labels,
                                                 matchup_teams_data[0])
             team2 = self._get_matchup_team_data(names[1],
                                                 scores[1],
+                                                records[1],
+                                                owners[1],
                                                 labels,
                                                 matchup_teams_data[1])
             result = [team1, team2]
@@ -308,8 +316,15 @@ class ESPNTeam(BaseTeam):
             return title[:-1]
         return title
 
-    def _get_matchup_team_data(self, name, score, labels, team_data):
-        result = {'name': name, 'score': score, 'data': {}}
+    def _get_matchup_team_data(self, name, score, record, owner, labels,
+                               team_data):
+        result = {
+            'name': name,
+            'score': score,
+            'record': record,
+            'owner': owner,
+            'data': {},
+        }
         divs = team_data.find_all('div')
         assert len(labels) == len(divs)
         for label, div in zip(labels, divs):
