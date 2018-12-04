@@ -263,13 +263,6 @@ class ESPNTeam(BaseTeam):
         logger.info("get_players()")
         return list(self.players_generator(max_num_requests))
 
-    def _get_scoreboard_soup_piece(self):
-        logger.info("Grabbing scoreboard soup piece")
-        url = URL_TEMPLATE_SCOREBOARD % (self.league_id, self.season_id)
-        logger.info("URL: %s", url)
-        response = self.session.get(url, headers={'Cookie': self.cookie})
-        return BeautifulSoup(response.content, PARSER)
-
     def get_scoreboard(self):
         soup = self._get_scoreboard_soup_piece()
         matchups = soup.find_all(class_='matchup')
@@ -294,6 +287,13 @@ class ESPNTeam(BaseTeam):
             result = [team1, team2]
             results.append(result)
         return results
+
+    def _get_scoreboard_soup_piece(self):
+        logger.info("Grabbing scoreboard soup piece")
+        url = URL_TEMPLATE_SCOREBOARD % (self.league_id, self.season_id)
+        logger.info("URL: %s", url)
+        response = self.session.get(url, headers={'Cookie': self.cookie})
+        return BeautifulSoup(response.content, PARSER)
 
     def _get_details_labels(self, details):
         labels_divs = details.find(class_='labels').find_all('div')
