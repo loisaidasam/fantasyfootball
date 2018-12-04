@@ -13,6 +13,7 @@ LOGIN_URL_GET = 'http://games.espn.com/frontpage/football'
 LOGIN_URL_POST = 'https://registerdisney.go.com/jgc/v2/client/ESPN-FANTASYLM-PROD/guest/login?langPref=en-US'
 TEAM_URL_TEMPLATE = 'http://games.espn.com/ffl/clubhouse?leagueId=%s&teamId=%s&seasonId=%s'
 URL_TEMPLATE_PLAYERS = 'http://games.espn.com/ffl/playertable/prebuilt/freeagency?leagueId=%s&teamId=%s&seasonId=%s&avail=-1&context=freeagency&view=overview&startIndex=%s'
+URL_TEMPLATE_SCOREBOARD = 'http://games.espn.com/ffl/scoreboard?leagueId=%s&seasonId=%s'
 
 # PARSER = 'lxml'
 PARSER = 'html5lib'
@@ -261,3 +262,56 @@ class ESPNTeam(BaseTeam):
     def get_players(self, max_num_requests=None):
         logger.info("get_players()")
         return list(self.players_generator(max_num_requests))
+
+    def _get_scoreboard_soup_piece(self):
+        logger.info("Grabbing scoreboard soup piece")
+        url = URL_TEMPLATE_SCOREBOARD % (self.league_id, self.season_id)
+        logger.info("URL: %s", url)
+        response = self.session.get(url, headers={'Cookie': self.cookie})
+        return BeautifulSoup(response.content, PARSER)
+
+    def get_scoreboard(self):
+        soup = self._get_scoreboard_soup_piece()
+        matchups = soup.find_all(class_='matchup')
+        results = []
+        for matchup in matchups:
+            names = [name.find('a').text for name in matchup.find_all(class_='name')]
+            assert len(names) == 2
+            scores = [score.text for score in matchup.find_all(class_='score')]
+            assert len(scores) == 2
+            details = matchup.find(class_='scoringDetails')
+            labels = self._get_details_labels(details)
+            matchup_teams_data = details.find_all(class_='playersPlayed')
+            assert len(matchup_teams_data) == 2
+            team1 = self._get_matchup_team_data(names[0],
+                                                scores[0],
+                                                labels,
+                                                matchup_teams_data[0])
+            team2 = self._get_matchup_team_data(names[1],
+                                                scores[1],
+                                                labels,
+                                                matchup_teams_data[1])
+            result = [team1, team2]
+            results.append(result)
+        return results
+
+    def _get_details_labels(self, details):
+        labels_divs = details.find(class_='labels').find_all('div')
+        return [self._get_label_div_title(div) for div in labels_divs]
+
+    def _get_label_div_title(self, div):
+        title = div.get('title')
+        if title:
+            return title
+        title = div.text
+        if title.endswith(':'):
+            return title[:-1]
+        return title
+
+    def _get_matchup_team_data(self, name, score, labels, team_data):
+        result = {'name': name, 'score': score, 'data': {}}
+        divs = team_data.find_all('div')
+        assert len(labels) == len(divs)
+        for label, div in zip(labels, divs):
+            result['data'][label] = div.text
+        return result
