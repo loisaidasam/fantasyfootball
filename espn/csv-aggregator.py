@@ -1,5 +1,5 @@
-"""Take a folder of date-ordered CSVs and aggregate them into one big CSV with
-players in the header row and the dates as subsequent rows
+"""Take a folder of date-ordered CSVs and aggregate them into one big CSV
+ordered by player and then CSV
 """
 
 import csv
@@ -104,6 +104,8 @@ class PlayerValueLookup(object):
             filename = get_filename_player_position_cache(csv_file)
             with open(filename, 'r') as fp:
                 self.player_position_cache = json.load(fp)
+        except KeyboardInterrupt:
+            raise
         except:
             logger.warning("Error loading player_position_cache for csv `%s`",
                            csv_file)
@@ -111,7 +113,7 @@ class PlayerValueLookup(object):
     def close(self):
         self.fp.close()
 
-    def get_player_row_value_brute_force(self, player, column):
+    def get_player_row_brute_force(self, player):
         self.fp.seek(0)
         reader = csv.DictReader(self.fp)
         name, team, pos = player
@@ -122,30 +124,30 @@ class PlayerValueLookup(object):
                 continue
             if row['pos'] != pos:
                 continue
-            if row[column] == '--':
-                return ''
-            return row[column]
-        return ''
+            return row
+        return None
 
-    def get_player_row_value(self, player, column):
+    def get_player_row(self, player):
         if self.player_position_cache:
             player_str_cache = get_player_str_cache(player)
             if player_str_cache in self.player_position_cache:
                 position = self.player_position_cache[player_str_cache]
                 self.reader.seek(position)
                 position, row = self.reader.next()
-                if row[column] == '--':
-                    return ''
-                return row[column]
+                return row
             logger.debug("Player not in player_position_cache: %s",
                          player)
             # TODO: If the cache exists and the player isn't in it do we
             # fallback to brute force or just return ''?
-            return ''
-        return self.get_player_row_value_brute_force(player, column)
+            return None
+        return self.get_player_row_brute_force(player)
+
+    def get_player_row_value(self, player, column):
+        row = self.get_player_row(player)
+        return row and row[column] or ''
 
 
-def get_csv_row(players, csv_file, column):
+def get_csv_row_for_column(players, csv_file, column):
     row = [os.path.basename(csv_file)]
     num_players_missing = 0
     lookup = PlayerValueLookup(csv_file)
@@ -169,14 +171,14 @@ def get_csv_row(players, csv_file, column):
     return row
 
 
-def aggregate(dir_name, column):
+def aggregate_for_column(dir_name, column):
     logger.info("Aggregating data from dir `%s` / column `%s` ...",
                 dir_name,
                 column)
     csv_files = get_csv_files(dir_name)
     logger.info("Got `%s` CSV files", len(csv_files))
     dir_name_basename = os.path.basename(dir_name)
-    players = get_unique_players()
+    players = get_unique_players(dir_name_basename, csv_files)
     filename = '%s-players-all-%s.csv' % (dir_name_basename, column)
     logger.info("Writing to `%s`", filename)
     with open(filename, 'w') as fp:
@@ -186,7 +188,7 @@ def aggregate(dir_name, column):
         logger.info("Writing CSV files ...")
         for csv_file in tqdm(csv_files):
             try:
-                row = get_csv_row(players, csv_file, column)
+                row = get_csv_row_for_column(players, csv_file, column)
             except KeyboardInterrupt:
                 raise
             except MissingAllPlayersError:
@@ -198,10 +200,48 @@ def aggregate(dir_name, column):
             writer.writerow(row)
 
 
+def aggregate(dir_name):
+    logger.info("Aggregating data from dir `%s` ...", dir_name)
+    csv_files = get_csv_files(dir_name)
+    logger.info("Got `%s` CSV files", len(csv_files))
+    dir_name_basename = os.path.basename(dir_name)
+    players = get_unique_players(dir_name_basename, csv_files)
+    filename = '%s-players-all.csv' % dir_name_basename
+    logger.info("Writing to `%s`", filename)
+    with open(filename, 'w') as fp:
+        writer = csv.writer(fp)
+        row_header = ['player', 'filename']
+        row_header_attrs = None
+        for player in tqdm(players):
+            player_str = get_player_str(player)
+            for csv_file in csv_files:
+                try:
+                    lookup = PlayerValueLookup(csv_file)
+                    csv_row = lookup.get_player_row(player)
+                    lookup.close()
+                except KeyboardInterrupt:
+                    raise
+                except:
+                    logger.exception("Error getting CSV row for filename `%s`",
+                                     csv_file)
+                    continue
+                if not csv_row:
+                    continue
+                if not row_header_attrs:
+                    row_header_attrs = csv_row.keys()
+                    writer.writerow(row_header + row_header_attrs)
+                row = [player_str, csv_file]
+                for key in row_header_attrs:
+                    value = csv_row.get(key) or ''
+                    if value == '--':
+                        value = ''
+                    row.append(value)
+                writer.writerow(row)
+
+
 if __name__ == '__main__':
-    if len(sys.argv) < 3:
-        logger.error("Missing dir name / column ('proj' or 'last')")
+    if len(sys.argv) < 2:
+        logger.error("Missing dir name")
         sys.exit(1)
     dir_name = sys.argv[1]
-    column = sys.argv[2]
-    aggregate(dir_name, column)
+    aggregate(dir_name)
